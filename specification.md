@@ -16,7 +16,7 @@
 <table>
 <tr>
 <th>JSDoc (18 lines)</th>
-<th>jty (4 lines)</th>
+<th>//T (4 lines)</th>
 </tr>
 <tr>
 <td>
@@ -67,7 +67,7 @@ function createUser(name, email, role) {
 <table>
 <tr>
 <th>JSDoc</th>
-<th>jty</th>
+<th>//T</th>
 </tr>
 <tr>
 <td>
@@ -105,7 +105,7 @@ function filter(items, predicate) {
 <table>
 <tr>
 <th>JSDoc</th>
-<th>jty</th>
+<th>//T</th>
 </tr>
 <tr>
 <td>
@@ -157,7 +157,7 @@ function filter(items, predicate) {
 <table>
 <tr>
 <th>JSDoc</th>
-<th>jty</th>
+<th>//T</th>
 </tr>
 <tr>
 <td>
