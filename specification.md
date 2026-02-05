@@ -15,8 +15,8 @@
 
 <table>
 <tr>
-<th>JSDoc (18 lines)</th>
-<th>//T (4 lines)</th>
+<th>JSDoc (9 comment lines)</th>
+<th>//T (3 lines)</th>
 </tr>
 <tr>
 <td>
