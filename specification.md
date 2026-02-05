@@ -2282,4 +2282,3 @@ The following features are explicitly **not supported** in jty v0.2:
 
 ---
 
-Ready for implementation?
