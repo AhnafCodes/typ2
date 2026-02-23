@@ -523,7 +523,7 @@ variable_type  ::= type_expr ["-" description]
 
 object_type    ::= "{" property_list "}"
 property_list  ::= property ("," property)*
-property       ::= ["readonly"] IDENTIFIER ["?"] ":" type_expr
+property       ::= ["only"] IDENTIFIER ["?"] ":" type_expr
 
 generic_type   ::= IDENTIFIER "{" type_args "}"
 type_args      ::= type_expr ("," type_expr)*
@@ -706,9 +706,9 @@ export const ID = {};
 export const Status = {};
 ```
 
-**With optional and readonly properties:**
+**With optional and only properties:**
 ```javascript
-// T: typedef Config = { apiKey: string, timeout?: number, readonly baseUrl: string }
+// T: typedef Config = { apiKey: string, timeout?: number, baseUrl: string @readonly }
 ```
 
 **Generates:**
@@ -1225,7 +1225,7 @@ export function onClick(event) {}
 class User {
 // T: * Represents a system user    
     name;  // T: string - Display name
-    id;    // T: readonly string - Unique identifier
+    id;    // T: string @readonly - Unique identifier
     
     constructor(name) {
         // T: (string)
@@ -1414,8 +1414,8 @@ export class Resource {
 
 ```javascript
 class Config {
-    apiKey;   // T: readonly string - API authentication key
-    baseUrl;  // T: readonly string - Base URL for requests
+    apiKey;   // T: string @readonly  - API authentication key
+    baseUrl;  // T: string @readonly  - Base URL for requests
 }
 ```
 
@@ -1677,7 +1677,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 | Array (shorthand) | `T[]` | `// T: string[]` |
 | Array (generic) | `Array{T}` | `// T: Array{string}` |
 | Nested array | `T[][]` or `Array{Array{T}}` | `// T: number[][]` |
-| Readonly array | `readonly T[]` | `// T: readonly string[]` |
+| Readonly array | `readonly T[]` | `// T: string[] @readonly ` |
 
 ### Objects
 
@@ -1685,7 +1685,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 |------|--------|---------|
 | Object literal | `{ key: type }` | `// T: { name: string }` |
 | Optional property | `{ key?: type }` | `// T: { name?: string }` |
-| Readonly property | `{ readonly key: type }` | `// T: { readonly id: string }` |
+| Readonly property | `{ readonly key: type }` | `// T: { id: string @readonly }` |
 | Index signature | `{ [key: string]: type }` | `// T: { [key: string]: number }` |
 | Record | `Record{K, V}` | `// T: Record{string, number}` |
 
