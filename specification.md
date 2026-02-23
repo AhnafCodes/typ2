@@ -48,7 +48,7 @@ function createUser(name, email, role) {
 function createUser(name, email, role) {
     // T: (string, string, Role?) => User
     // T: * Creates a new user with the given details
-    // T:  @throws {Error} - If email is invalid
+    // T:  @throws: ErrorType - If email is invalid
     return {
         id: crypto.randomUUID(),
         name,
@@ -1199,8 +1199,9 @@ export function createArray(length, value) {}
 
 ```javascript
 function onClick(event) {
-// T: (this: HTMLElement, event: MouseEvent)
-    console.log(this.id);
+// T: (event: MouseEvent)
+// T: @this: HTMLElement
+    console.log(this.id); 
 }
 ```
 
@@ -1597,8 +1598,8 @@ function calculate(x) {
     // T: (number) => number
     // T: * Calculates using complex formula
     // T: @deprecated - Use calculateV2 instead
-    // T: @throws {Error} - When x is negative
-    // T: @see - calculateV2
+    // T: @throws: Error - When x is negative
+    // T: @see calculateV2
     return x * 2;
 }
 ```
@@ -1627,7 +1628,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 | Tag | Usage |
 |-----|-------|
 | `@deprecated` | Mark as deprecated with optional message |
-| `@throws {Type}` | Document thrown exceptions |
+| `@throws :ErrorType` | Document thrown exceptions |
 | `@see` | Reference related symbols or URLs |
 | `@link` | Inline link to symbol or URL |
 | `@example` | Code example (multiline supported) |
@@ -1644,7 +1645,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 3. `@this`
 4. `@param`
 5. `@returns`
-6. `@throws`
+6. `@throws {Error}`
 7. `@deprecated`
 8. `@see`
 9. Other tags
@@ -2102,7 +2103,7 @@ const subscribers = new Set();  // T: Set{OnUserChange}
 function createUser(name, email, role) {
     // T: (name: string, email: string, role?: Role) => User
     // T: * Creates a new user with the given details
-    // T:  @throws {Error} - If email is invalid
+    // T:  @throws: Error - If email is invalid
     return {
         id: crypto.randomUUID(),
         name,
