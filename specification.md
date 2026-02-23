@@ -1217,7 +1217,7 @@ export function onClick(event) {}
 
 ---
 
-## Classes 
+## Class 
  class and function/method typing // T: is not on the above, to avoid collision. 
 
 ```javascript
@@ -1677,7 +1677,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 | Array (shorthand) | `T[]` | `// T: string[]` |
 | Array (generic) | `Array{T}` | `// T: Array{string}` |
 | Nested array | `T[][]` or `Array{Array{T}}` | `// T: number[][]` |
-| Readonly array | ` T[] @ readonly` | `// T: string[] @readonly ` |
+| Readonly array | `T[] @ readonly` | `// T: string[] @readonly ` |
 
 ### Objects
 
@@ -2007,9 +2007,11 @@ jty init                       # Create config (auto-detect runtime)
 jty init --runtime node        # Node.js/Bun config (jsconfig.json)
 jty init --runtime deno        # Deno config (deno.json)
 
-jty inject src/                # Inject JSDoc into source files (inline casts)
+
 jty clean                      # Remove .types/ directory
 jty check src/                 # Validate // T: syntax without generating
+stage - 2
+jty inject src/                # Inject JSDoc into source files (inline casts)
 ```
 
 **Options:**
