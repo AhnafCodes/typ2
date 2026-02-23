@@ -46,9 +46,9 @@ function createUser(name, email, role) {
 
 ```javascript
 function createUser(name, email, role) {
-    // T: (string, string, Role?) => User
-    // T: * Creates a new user with the given details
-    // T:  @throws: ErrorType - If email is invalid
+// T: (string, string, Role?) => User
+// T: * Creates a new user with the given details
+// T:  @throws: ErrorType - If email is invalid
     return {
         id: crypto.randomUUID(),
         name,
@@ -90,8 +90,8 @@ function filter(items, predicate) {
 
 ```javascript
 function filter(items, predicate) {
-    // T: {T}(T[], (T) => boolean) => T[]
-    // T: * Filters an array based on a predicate
+// T: {T}(T[], (T) => boolean) => T[]
+// T: * Filters an array based on a predicate
     return items.filter(predicate);
 }
 ```
@@ -181,8 +181,8 @@ async function fetchJson(url, options) {
 
 ```javascript
 async function fetchJson(url, options) {
-    // T: {T}(string, RequestInit?) => T
-    // T: * Fetches data from an API endpoint
+// T: {T}(string, RequestInit?) => T
+// T: * Fetches data from an API endpoint
     const res = await fetch(url, options);
     return res.json();
 }
@@ -239,8 +239,8 @@ class Box {
 
 ```javascript
 class Box {
-    // T: @template T
-    // T: * A generic data container
+// T: @template T
+// T: * A generic data container
 
     value;  // T: T - The contained value
     
@@ -412,7 +412,7 @@ let items = [];       // T: Array{string}
 let map = new Map();  // T: Map{string, number}
 
 function identity(x) {
-    // T: {T}(T) => T
+// T: {T}(T) => T
     return x;
 }
 ```
@@ -523,7 +523,7 @@ variable_type  ::= type_expr ["-" description]
 
 object_type    ::= "{" property_list "}"
 property_list  ::= property ("," property)*
-property       ::= ["only"] IDENTIFIER ["?"] ":" type_expr
+property       ::= IDENTIFIER ["?"] ":" type_expr ["@readonly"]
 
 generic_type   ::= IDENTIFIER "{" type_args "}"
 type_args      ::= type_expr ("," type_expr)*
@@ -785,7 +785,7 @@ export const Mapper = {};
 
 ```javascript
 function save(user) {
-    // T: (import('src/models').User)
+// T: (import('src/models').User)
     db.insert(user);
 }
 ```
@@ -794,7 +794,7 @@ function save(user) {
 
 ```javascript
 function save(user) {
-    // T: (User from 'src/models')
+// T: (User from 'src/models')
     db.insert(user);
 }
 ```
@@ -848,7 +848,7 @@ export let count;
 **Positional:**
 ```javascript
 function add(a, b) {
-    // T: (number, number) => number
+// T: (number, number) => number
     return a + b;
 }
 ```
@@ -856,7 +856,7 @@ function add(a, b) {
 **Named:**
 ```javascript
 function add(a, b) {
-    // T: (a: number, b: number) => number
+// T: (a: number, b: number) => number
     return a + b;
 }
 ```
@@ -872,7 +872,7 @@ function logMessage(msg) {
 **Void return (shorthand):**
 ```javascript
 function logMessage(msg) {
-    // T: (string)
+// T: (string)
     console.log(msg);
 }
 ```
@@ -882,8 +882,8 @@ function logMessage(msg) {
 **With description:**
 ```javascript
 function add(a, b) {
-    // T: (number, number) => number
-    // T: * Adds two numbers together
+// T: (number, number) => number
+// T: * Adds two numbers together
     return a + b;
 }
 ```
@@ -947,7 +947,7 @@ export const greet = (name) => {};
 
 ```javascript
 export default function calculate(x) {
-    // T: (number) => number
+// T: (number) => number
     return x * 2;
 }
 ```
@@ -982,7 +982,7 @@ export default handler;
 
 ```javascript
 function sum(...nums) {
-    // T: (...number[]) => number
+// T: (...number[]) => number
     return nums.reduce((a, b) => a + b, 0);
 }
 ```
@@ -1002,7 +1002,7 @@ Use `?` suffix. Optional means the parameter may be `undefined`.
 
 ```javascript
 function greet(name, times) {
-    // T: (string, number?) => string
+// T: (string, number?) => string
     return name.repeat(times ?? 1);
 }
 ```
@@ -1040,8 +1040,8 @@ export function greet(name, times) {}
 
 ```javascript
 function process({ name, age }) {
-    // T: ({ name: string - Display name,
-    // T: age: number - Age in years })
+// T: ({ name: string - Display name,
+// T: age: number - Age in years })
     console.log(name, age);
 }
 ```
@@ -1059,7 +1059,7 @@ export function process({ name, age }) {}
 **With optional properties and defaults:**
 ```javascript
 function process({ name, age = 18 }) {
-    // T: ({ name: string, age?: number })
+// T: ({ name: string, age?: number })
     console.log(name, age);
 }
 ```
@@ -1080,7 +1080,7 @@ export function process({ name, age }) {}
 
 ```javascript
 async function fetchUser(id) {
-    // T: (number) => User
+// T: (number) => User
     return api.get(`/users/${id}`);
 }
 ```
@@ -1097,7 +1097,7 @@ export async function fetchUser(id) {}
 **Explicit Promise (also valid):**
 ```javascript
 async function fetchUser(id) {
-    // T: (number) => Promise{User}
+// T: (number) => Promise{User}
     return api.get(`/users/${id}`);
 }
 ```
@@ -1108,7 +1108,7 @@ async function fetchUser(id) {
 
 ```javascript
 function identity(x) {
-    // T: {T}(T) => T
+// T: {T}(T) => T
     return x;
 }
 ```
@@ -1126,7 +1126,7 @@ export function identity(x) {}
 **Multiple type parameters:**
 ```javascript
 function pair(a, b) {
-    // T: {T, U}(T, U) => [T, U]
+// T: {T, U}(T, U) => [T, U]
     return [a, b];
 }
 ```
@@ -1151,7 +1151,7 @@ function longest(a, b) {
 }
 
 function getProperty(obj, key) {
-    // T: {T, K extends keyof T}(T, K) => T[K]
+// T: {T, K extends keyof T}(T, K) => T[K]
     return obj[key];
 }
 ```
@@ -1179,7 +1179,7 @@ export function getProperty(obj, key) {}
 **Generic with default:**
 ```javascript
 function createArray(length, value) {
-    // T: {T = string}(number, T) => T[]
+// T: {T = string}(number, T) => T[]
     return Array(length).fill(value);
 }
 ```
@@ -1289,7 +1289,7 @@ export class User {
 ```javascript
 
 class Admin extends User {
-    // T: * Administrator with elevated permissions
+// T: * Administrator with elevated permissions
 
     permissions;  // T: string[] - Granted permissions
     
@@ -1595,11 +1595,11 @@ let b = bar();
 **Standalone description (functions, classes, typedefs):**
 ```javascript
 function calculate(x) {
-    // T: (number) => number
-    // T: * Calculates using complex formula
-    // T: @deprecated: Use calculateV2 instead
-    // T: @throws: Error - When x is negative
-    // T: @see: calculateV2
+// T: (number) => number
+// T: * Calculates using complex formula
+// T: @deprecated: Use calculateV2 instead
+// T: @throws: Error - When x is negative
+// T: @see: calculateV2
     return x * 2;
 }
 ```
@@ -1628,7 +1628,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 | Tag | Usage |
 |-----|-------|
 | `@deprecated: message` | Mark as deprecated with optional message |
-| `@throws :ErrorType` | Document thrown exceptions |
+| `@throws: ErrorType` | Document thrown exceptions |
 | `@see` | Reference related symbols or URLs |
 | `@link` | Inline link to symbol or URL |
 | `@example` | Code example (multiline supported) |
@@ -2101,9 +2101,9 @@ export const OnUserChange = {};
 const subscribers = new Set();  // T: Set{OnUserChange}
 
 function createUser(name, email, role) {
-    // T: (name: string, email: string, role?: Role) => User
-    // T: * Creates a new user with the given details
-    // T:  @throws: Error - If email is invalid
+// T: (name: string, email: string, role?: Role) => User
+// T: * Creates a new user with the given details
+// T:  @throws: Error - If email is invalid
     return {
         id: crypto.randomUUID(),
         name,
@@ -2113,12 +2113,12 @@ function createUser(name, email, role) {
 }
 
 async function fetchUser(id) {
-    // T: (string) => User | null
+// T: (string) => User | null
     return api.get(`/users/${id}`);
 }
 
 function updateUsers(users, transform) {
-    // T: {T extends User}(T[], (T) => T) => T[]
+// T: {T extends User}(T[], (T) => T) => T[]
     return users.map(transform);
 }
 
