@@ -523,7 +523,7 @@ variable_type  ::= type_expr ["-" description]
 
 object_type    ::= "{" property_list "}"
 property_list  ::= property ("," property)*
-property       ::= IDENTIFIER ["?"] ":" type_expr ["@Create"]
+property       ::= IDENTIFIER ["?"] ":" type_expr ["@readonly"]
 
 generic_type   ::= IDENTIFIER "{" type_args "}"
 type_args      ::= type_expr ("," type_expr)*
