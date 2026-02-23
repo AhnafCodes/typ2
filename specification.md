@@ -807,7 +807,7 @@ function save(user) {
 ```
 
 > **Important:** Use baseUrl-relative imports (e.g., `'src/models'`) rather than relative paths (e.g., `'./models'`). See [IDE Configuration](#ide-configuration) for details.
-
+NOTE: class and function/method typing(// T: ) is  below not above defination to avoid collision.
 ---
 
 ## Variables
@@ -1218,7 +1218,6 @@ export function onClick(event) {}
 ---
 
 ## Class 
- class and function/method typing // T: is not on the above, to avoid collision. 
 
 ```javascript
 
