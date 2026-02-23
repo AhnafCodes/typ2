@@ -523,7 +523,7 @@ variable_type  ::= type_expr ["-" description]
 
 object_type    ::= "{" property_list "}"
 property_list  ::= property ("," property)*
-property       ::= IDENTIFIER ["?"] ":" type_expr ["@readonly"]
+property       ::= IDENTIFIER ["?"] ":" type_expr ["@Create"]
 
 generic_type   ::= IDENTIFIER "{" type_args "}"
 type_args      ::= type_expr ("," type_expr)*
@@ -1218,7 +1218,7 @@ export function onClick(event) {}
 ---
 
 ## Classes 
- class and function/method typing // T: is not on the top as that were annotation might be. 
+ class and function/method typing // T: is not on the above, to avoid collision. 
 
 ```javascript
 
@@ -1228,19 +1228,19 @@ class User {
     id;    // T: string @readonly - Unique identifier
     
     constructor(name) {
-        // T: (string)
+    // T: (string)
         this.name = name;
         this.id = crypto.randomUUID();
     }
     
     greet() {
-        // T: () => string
-        // T: * Returns a greeting message
+    // T: () => string
+    // T: * Returns a greeting message
         return `Hello, ${this.name}`;
     }
     
     static create(data) {
-        // T: (Partial{User}) => User
+    // T: (Partial{User}) => User
         return new User(data.name);
     }
 }
@@ -1677,7 +1677,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 | Array (shorthand) | `T[]` | `// T: string[]` |
 | Array (generic) | `Array{T}` | `// T: Array{string}` |
 | Nested array | `T[][]` or `Array{Array{T}}` | `// T: number[][]` |
-| Readonly array | `readonly T[]` | `// T: string[] @readonly ` |
+| Readonly array | ` T[] @ readonly` | `// T: string[] @readonly ` |
 
 ### Objects
 
@@ -1685,7 +1685,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 |------|--------|---------|
 | Object literal | `{ key: type }` | `// T: { name: string }` |
 | Optional property | `{ key?: type }` | `// T: { name?: string }` |
-| Readonly property | `{ readonly key: type }` | `// T: { id: string @readonly }` |
+| Readonly property | `{  key: type @readonly }` | `// T: { id: string @readonly }` |
 | Index signature | `{ [key: string]: type }` | `// T: { [key: string]: number }` |
 | Record | `Record{K, V}` | `// T: Record{string, number}` |
 
@@ -2103,7 +2103,7 @@ const subscribers = new Set();  // T: Set{OnUserChange}
 function createUser(name, email, role) {
 // T: (name: string, email: string, role?: Role) => User
 // T: * Creates a new user with the given details
-// T:  @throws: Error - If email is invalid
+// T: @throws: Error - If email is invalid
     return {
         id: crypto.randomUUID(),
         name,
@@ -2201,7 +2201,7 @@ The following features are explicitly **not supported** in jty v0.2:
 | Generic constraints | ✅ (`{T extends U}`) |
 | Objects & Records | ✅ |
 | Optional properties | ✅ |
-| Readonly properties | ✅ |
+| Create properties | ✅ |
 | Unions & Intersections | ✅ |
 | Nullable | ✅ |
 | Tuples | ✅ |
