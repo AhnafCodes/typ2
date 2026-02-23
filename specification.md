@@ -48,7 +48,7 @@ function createUser(name, email, role) {
 function createUser(name, email, role) {
     // T: (string, string, Role?) => User
     // T: * Creates a new user with the given details
-    // T: * @throws {Error} If email is invalid
+    // T:  @throws {Error} - If email is invalid
     return {
         id: crypto.randomUUID(),
         name,
@@ -1581,9 +1581,6 @@ export let VERSION;
 let legacy = getConfig();  // T: ignore
 
 
-let another = something();
-// T: ignore-above
-
 // T: ignore-start
 let a = foo();
 let b = bar();
@@ -1599,9 +1596,9 @@ let b = bar();
 function calculate(x) {
     // T: (number) => number
     // T: * Calculates using complex formula
-    // T: * @deprecated Use calculateV2 instead
-    // T: * @throws {Error} When x is negative
-    // T: * @see calculateV2
+    // T: @deprecated - Use calculateV2 instead
+    // T: @throws {Error} - When x is negative
+    // T: @see - calculateV2
     return x * 2;
 }
 ```
@@ -2105,7 +2102,7 @@ const subscribers = new Set();  // T: Set{OnUserChange}
 function createUser(name, email, role) {
     // T: (name: string, email: string, role?: Role) => User
     // T: * Creates a new user with the given details
-    // T: * @throws {Error} If email is invalid
+    // T:  @throws {Error} - If email is invalid
     return {
         id: crypto.randomUUID(),
         name,
