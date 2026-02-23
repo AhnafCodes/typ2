@@ -1597,9 +1597,9 @@ let b = bar();
 function calculate(x) {
     // T: (number) => number
     // T: * Calculates using complex formula
-    // T: @deprecated - Use calculateV2 instead
+    // T: @deprecated: Use calculateV2 instead
     // T: @throws: Error - When x is negative
-    // T: @see calculateV2
+    // T: @see: calculateV2
     return x * 2;
 }
 ```
@@ -1627,7 +1627,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 
 | Tag | Usage |
 |-----|-------|
-| `@deprecated` | Mark as deprecated with optional message |
+| `@deprecated: message` | Mark as deprecated with optional message |
 | `@throws :ErrorType` | Document thrown exceptions |
 | `@see` | Reference related symbols or URLs |
 | `@link` | Inline link to symbol or URL |
