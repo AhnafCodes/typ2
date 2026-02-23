@@ -1286,8 +1286,10 @@ export class User {
 ### Class Inheritance
 
 ```javascript
-// T: * Administrator with elevated permissions
+
 class Admin extends User {
+    // T: * Administrator with elevated permissions
+
     permissions;  // T: string[] - Granted permissions
     
     constructor(name, permissions) {
@@ -1337,9 +1339,10 @@ export class Admin extends User {
 ### Generic Classes
 
 ```javascript
+
+class Box {
 // T: * A generic container class
 // T: @template T
-class Box {
     value;  // T: T
     
     constructor(value) {
@@ -1383,8 +1386,9 @@ export class Box {
 ### Interface Implementation
 
 ```javascript
-// T: * @implements {Disposable}
+
 class Resource {
+// T: * @implements {Disposable}
     dispose() {
         // T: ()
         cleanup();
@@ -1576,8 +1580,9 @@ export let VERSION;
 ```javascript
 let legacy = getConfig();  // T: ignore
 
-// T: ignore-next
+
 let another = something();
+// T: ignore-above
 
 // T: ignore-start
 let a = foo();
@@ -1618,6 +1623,7 @@ export function calculate(x) {}
 ```javascript
 let count = 0;  // T: number - Current count
 ```
+NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comment description
 
 ### Supported JSDoc Tags in Descriptions
 
