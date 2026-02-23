@@ -238,9 +238,10 @@ class Box {
 <td>
 
 ```javascript
-// T: * A generic data container
-// T: @template T
 class Box {
+    // T: @template T
+    // T: * A generic data container
+
     value;  // T: T - The contained value
     
     constructor(value) {
@@ -1020,7 +1021,7 @@ export function greet(name, times) {}
 
 ```javascript
 function greet(name, times = 1) {
-    // T: (string, number) => string
+    // T: (string, number = 1) => string
     return name.repeat(times);
 }
 ```
@@ -1039,7 +1040,8 @@ export function greet(name, times) {}
 
 ```javascript
 function process({ name, age }) {
-    // T: ({ name: string - Display name, age: number - Age in years })
+    // T: ({ name: string - Display name,
+    // T: age: number - Age in years })
     console.log(name, age);
 }
 ```
@@ -1197,7 +1199,7 @@ export function createArray(length, value) {}
 
 ```javascript
 function onClick(event) {
-    // T: (this: HTMLElement, event: MouseEvent)
+// T: (this: HTMLElement, event: MouseEvent)
     console.log(this.id);
 }
 ```
@@ -1214,11 +1216,13 @@ export function onClick(event) {}
 
 ---
 
-## Classes
+## Classes 
+ class and function/method typing // T: is not on the top as that were annotation might be. 
 
 ```javascript
-// T: * Represents a system user
+
 class User {
+// T: * Represents a system user    
     name;  // T: string - Display name
     id;    // T: readonly string - Unique identifier
     
