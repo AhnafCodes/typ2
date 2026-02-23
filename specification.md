@@ -1677,7 +1677,7 @@ NOTE: * Vs -  // T * Heading vs // T: number - Current count "-" is inline comme
 | Array (shorthand) | `T[]` | `// T: string[]` |
 | Array (generic) | `Array{T}` | `// T: Array{string}` |
 | Nested array | `T[][]` or `Array{Array{T}}` | `// T: number[][]` |
-| Readonly array | `T[] @ readonly` | `// T: string[] @readonly ` |
+| Readonly array | `T[] @readonly` | `// T: string[] @readonly ` |
 
 ### Objects
 
