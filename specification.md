@@ -717,7 +717,7 @@ export const Status = {};
  * @typedef {Object} Config
  * @property {string} apiKey
  * @property {number} [timeout]
- * @property {string} baseUrl - readonly
+ * @property {string} baseUrl @readonly
  */
 export const Config = {};
 ```
