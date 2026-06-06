@@ -609,7 +609,7 @@ Watch mode (`jty generate --watch`) must guarantee:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         Watch Mode Flow                                  │
+│                         Watch Mode Flow                                 │
 └─────────────────────────────────────────────────────────────────────────┘
 
   File System Event                 jty Watcher                Action
@@ -1769,7 +1769,7 @@ The `.types/` directory mirrors your source tree exactly, creating a "shadow" of
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      Shadow Directory Structure                          │
+│                      Shadow Directory Structure                         │
 └─────────────────────────────────────────────────────────────────────────┘
 
      SOURCE TREE                              SHADOW TREE
@@ -1921,7 +1921,7 @@ Understanding why baseUrl imports are required:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        Import Resolution Flow                            │
+│                        Import Resolution Flow                           │
 └─────────────────────────────────────────────────────────────────────────┘
 
   SCENARIO A: Relative Import (❌ No Types)
