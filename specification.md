@@ -354,7 +354,7 @@ jty (also `//T`) is a lightweight type annotation syntax using trailing comments
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         jty Transpilation Pipeline                       │
+│                         jty Transpilation Pipeline                      │
 └─────────────────────────────────────────────────────────────────────────┘
 
   SOURCE FILES                    jty TOOL                    STUB FILES
