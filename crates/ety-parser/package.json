@@ -1,0 +1,16 @@
+{
+  "name": "ety-parser",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "napi": {
+    "name": "ety-parser"
+  },
+  "scripts": {
+    "build": "napi build --platform --release --features node-api",
+    "build:debug": "napi build --platform --features node-api"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.4"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "error-recovery",
+  "description": "Oxc fault tolerance: a recoverable syntax error mid-file still yields annotations for the valid prefix. NOTE: Oxc 0.135 recovery is narrow — unclosed braces/parens are fatal and empty the program (documented in crate tests).",
+  "source": "let count = 0; // T: number\nlet = 5;\n",
+  "expected": [
+    {
+      "nodeStartOffset": 0,
+      "etyStartOffset": 15,
+      "etyEndOffset": 27,
+      "kind": "variable",
+      "name": "count",
+      "ety": "number"
+    }
+  ]
+}

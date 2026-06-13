@@ -1,0 +1,23 @@
+{
+  "name": "import",
+  "description": "Import annotation is standalone (attached to no AST node): kind import, node offset = its own comment start, so the hoisted virtual line maps back here.",
+  "source": "// T: import { User, Role } from './types'\nlet current = null; // T: User | null\n",
+  "expected": [
+    {
+      "nodeStartOffset": 0,
+      "etyStartOffset": 0,
+      "etyEndOffset": 42,
+      "kind": "import",
+      "name": "",
+      "ety": "import { User, Role } from './types'"
+    },
+    {
+      "nodeStartOffset": 43,
+      "etyStartOffset": 63,
+      "etyEndOffset": 80,
+      "kind": "variable",
+      "name": "current",
+      "ety": "User | null"
+    }
+  ]
+}

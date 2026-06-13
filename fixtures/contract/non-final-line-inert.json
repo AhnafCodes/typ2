@@ -1,0 +1,6 @@
+{
+  "name": "non-final-line-inert",
+  "description": "Gate 1: comment trailing a NON-final line of a multi-line declaration falls inside the statement span — zero annotations, silently inert by design.",
+  "source": "let x = 1, // T: number\n    y = 2;\n",
+  "expected": []
+}

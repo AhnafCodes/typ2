@@ -1,0 +1,15 @@
+{
+  "name": "property",
+  "description": "Trailing annotation on a PropertyDefinition.",
+  "source": "class Box {\n    value; // T: T\n}\n",
+  "expected": [
+    {
+      "nodeStartOffset": 16,
+      "etyStartOffset": 23,
+      "etyEndOffset": 30,
+      "kind": "property",
+      "name": "value",
+      "ety": "T"
+    }
+  ]
+}

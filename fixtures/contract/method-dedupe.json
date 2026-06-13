@@ -1,0 +1,15 @@
+{
+  "name": "method-dedupe",
+  "description": "Gate 1 dedupe mandate: visit_method_definition and the inner visit_function both match this comment; exactly ONE annotation survives, the method-level one (named, method node offset).",
+  "source": "class Box {\n    map(fn) {\n        // T: {U}((T) => U) => Box{U}\n        return new Box(fn(this.value));\n    }\n}\n",
+  "expected": [
+    {
+      "nodeStartOffset": 16,
+      "etyStartOffset": 34,
+      "etyEndOffset": 63,
+      "kind": "function",
+      "name": "map",
+      "ety": "{U}((T) => U) => Box{U}"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "class-generic",
+  "description": "Class-level generic params: {T} between the class body's opening brace and its first element.",
+  "source": "class Box {\n// T: {T}\n    value;\n}\n",
+  "expected": [
+    {
+      "nodeStartOffset": 0,
+      "etyStartOffset": 12,
+      "etyEndOffset": 21,
+      "kind": "class",
+      "name": "Box",
+      "ety": "{T}"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "ety",
+  "version": "0.0.1",
+  "private": true,
+  "description": "ety (// T:) language server — types in comments for plain JavaScript",
+  "workspaces": [
+    "crates/ety-parser",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "build:parser": "npm run build --workspace ety-parser",
+    "test": "npm test --workspace server",
+    "test:e2e": "npm run test:e2e --workspace client"
+  }
+}

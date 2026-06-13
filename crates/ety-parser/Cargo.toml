@@ -1,0 +1,33 @@
+[package]
+name = "ety-parser"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# Pinned exactly (spec "Pin and record"): Oxc visitor method names and comment
+# span semantics are version-sensitive. Verified against 0.135.0:
+#   - comments live on `program.comments` (no ParserReturn.trivias)
+#   - Comment.span INCLUDES the // delimiters; content_span() excludes them
+#   - visit_function takes a ScopeFlags argument (from oxc_syntax)
+#   - function/arrow bodies are FunctionBody (directives + statements)
+[dependencies]
+napi = { version = "2.16.17", optional = true }
+napi-derive = { version = "2.16.13", optional = true }
+oxc_allocator = "=0.135.0"
+oxc_ast = "=0.135.0"
+oxc_ast_visit = "=0.135.0"
+oxc_parser = "=0.135.0"
+oxc_span = "=0.135.0"
+oxc_syntax = "=0.135.0"
+
+[build-dependencies]
+napi-build = "2"
+
+[features]
+default = []
+# napi bindings are feature-gated so plain `cargo test` works: test binaries
+# don't link against Node, so the napi_* symbols the #[napi] registration
+# ctors reference would fail to resolve on macOS. `napi build` enables this.
+node-api = ["dep:napi", "dep:napi-derive"]

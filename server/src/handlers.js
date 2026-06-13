@@ -1,0 +1,152 @@
+// Phase 3 handlers (ety-lsp-spec.md) as pure functions over injected state
+// and deps — main.js owns the only connection wiring. Deviation from the
+// spec's module-level globals, recorded there as a suggested edit.
+//
+// All state maps are keyed by FILESYSTEM PATH, not URI: these keys double as
+// TypeScript file names, and module resolution calls fileExists/readFile on
+// them against the real disk — 'file:///dir/types.js' never exists there.
+// The original URI is kept inside the lineMaps entry for publishing.
+import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+import { LineIndex, transformDocument } from './transform.js';
+import { tsCategoryToSeverity } from './tsHost.js';
+
+export const DEBOUNCE_MS = 200;
+
+export function uriToPath(uri) {
+    return uri.startsWith('file://') ? fileURLToPath(uri) : uri;
+}
+
+export function createState() {
+    return {
+        virtualDocs: new Map(), // path -> virtual source string
+        lineMaps: new Map(),    // path -> { vToO, oToV, lineKind, lineIndex, uri }
+        versions: new Map(),    // path -> document version (TS cache invalidation)
+        diagTimers: new Map(),  // path -> debounce timer for diagnostics
+    };
+}
+
+// Parse + transform synchronously (cheap; hover always has fresh maps), then
+// debounce the expensive TS check. A parse_ety throw (malformed addon input,
+// future Rust panic surfaced as a JS error) must NOT wipe document state:
+// keep the previous virtual doc and maps so hover keeps answering from the
+// last good parse. Stale-but-working beats dead.
+export function processDocument(state, deps, document) {
+    const path = uriToPath(document.uri);
+    try {
+        const source = document.getText();
+        const { virtualSource, vToO, oToV, lineKind } = transformDocument(source, deps.parse_ety(source));
+        state.virtualDocs.set(path, virtualSource);
+        state.lineMaps.set(path, {
+            vToO, oToV, lineKind,
+            lineIndex: new LineIndex(virtualSource),
+            uri: document.uri,
+        });
+        // document.version is LSP-maintained (didOpen: 1, then increments) —
+        // distinct per content, which is all getScriptVersion needs.
+        state.versions.set(path, document.version ?? (state.versions.get(path) ?? 0) + 1);
+    } catch (err) {
+        deps.connection.console.error(`ety: keeping last good state for ${document.uri}: ${err.stack ?? err}`);
+        return; // no publish either — diagnostics would describe the stale doc
+    }
+    clearTimeout(state.diagTimers.get(path));
+    state.diagTimers.set(path, setTimeout(() => pushDiagnostics(state, deps, path), DEBOUNCE_MS));
+}
+
+// TS reports d.start/d.length as ABSOLUTE offsets in the VIRTUAL document.
+// Code line: remap the line number, pass the character through (columns are
+// identical by the additive-overlay invariant). Injected line (JSDoc or
+// hoisted import): the virtual column is meaningless on the original line,
+// so underline the owning // T: comment span instead.
+export function pushDiagnostics(state, deps, path) {
+    const entry = state.lineMaps.get(path);
+    if (!entry) return; // closed, or debounce fired before first processDocument
+    const { vToO, lineIndex, lineKind, uri } = entry;
+
+    // Syntactic diagnostics catch the user's plain JS syntax errors;
+    // getSemanticDiagnostics alone silently drops parse errors (pinned in
+    // tshost.test.js).
+    const located = [];
+    for (const d of [
+        ...deps.tsService.getSyntacticDiagnostics(path),
+        ...deps.tsService.getSemanticDiagnostics(path),
+    ]) {
+        if (d.start === undefined) {
+            // Project-level diagnostics (broken lib, bad compiler option)
+            // carry no file location to squiggle. Don't drop them silently —
+            // a misconfigured environment would be undebuggable; warn into
+            // the client's output panel instead.
+            deps.connection.console.warn(
+                `ety: project-level diagnostic for ${uri}: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`,
+            );
+            continue;
+        }
+        located.push(d);
+    }
+
+    const diagnostics = located
+        .map(d => {
+            const len = d.length ?? 0;
+            const vStart = lineIndex.getLineAndChar(d.start);
+            const vEnd = lineIndex.getLineAndChar(d.start + len);
+
+            const k = lineKind.get(vStart.line) ?? { kind: 'code' };
+            let range;
+            if (k.kind === 'code') {
+                range = {
+                    start: { line: vToO.get(vStart.line) ?? vStart.line, character: vStart.character },
+                    end:   { line: vToO.get(vEnd.line)   ?? vEnd.line,   character: vEnd.character },
+                };
+            } else {
+                range = k.commentRange;
+            }
+
+            return {
+                range,
+                message: ts.flattenDiagnosticMessageText(d.messageText, '\n'),
+                severity: tsCategoryToSeverity(d.category),
+            };
+        });
+
+    deps.connection.sendDiagnostics({ uri, version: state.versions.get(path), diagnostics });
+}
+
+// Hover positions arrive in ORIGINAL coordinates; getQuickInfoAtPosition
+// takes and returns absolute VIRTUAL offsets. Hovering the // T: text needs
+// no special handling: the comment line exists verbatim in the virtual doc,
+// so the query lands in comment trivia and TS returns undefined.
+export function onHover(state, deps, { textDocument, position }) {
+    const path = uriToPath(textDocument.uri);
+    const entry = state.lineMaps.get(path);
+    if (!entry) return null; // not yet processed, or closed (race guard)
+    const { oToV, vToO, lineIndex } = entry;
+
+    const virtualLine = oToV.get(position.line) ?? position.line;
+    const virtualOffset = lineIndex.getOffset(virtualLine, position.character);
+
+    const info = deps.tsService.getQuickInfoAtPosition(path, virtualOffset);
+    if (!info) return null;
+
+    const vStart = lineIndex.getLineAndChar(info.textSpan.start);
+    const vEnd = lineIndex.getLineAndChar(info.textSpan.start + info.textSpan.length);
+
+    return {
+        contents: ts.displayPartsToString(info.displayParts),
+        range: {
+            start: { line: vToO.get(vStart.line) ?? vStart.line, character: vStart.character },
+            end:   { line: vToO.get(vEnd.line)   ?? vEnd.line,   character: vEnd.character },
+        },
+    };
+}
+
+// Prevent unbounded growth: drop all per-document state on close, cancel any
+// pending debounce, and clear the document's squigglies in the editor.
+export function onDidClose(state, deps, document) {
+    const path = uriToPath(document.uri);
+    clearTimeout(state.diagTimers.get(path));
+    state.diagTimers.delete(path);
+    state.virtualDocs.delete(path);
+    state.lineMaps.delete(path);
+    state.versions.delete(path);
+    deps.connection.sendDiagnostics({ uri: document.uri, diagnostics: [] });
+}

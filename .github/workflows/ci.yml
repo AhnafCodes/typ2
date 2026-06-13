@@ -1,0 +1,40 @@
+# Three test layers in build order (implementation-plan.md): cargo test
+# (Rust parser units) -> vitest (server units + parser contracts, against the
+# compiled napi addon) -> e2e (@vscode/test-electron under xvfb).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rust:
+    name: cargo test (ety-parser)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/ety-parser
+      # default features only — the node-api feature is for `napi build`;
+      # test binaries don't link against Node (see Cargo.toml).
+      - run: cargo test --manifest-path crates/ety-parser/Cargo.toml
+
+  node:
+    name: vitest + e2e (against compiled addon)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/ety-parser
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:parser
+      - run: npm test --workspace server
+      - run: xvfb-run -a npm run test:e2e --workspace client

@@ -1,0 +1,26 @@
+{
+  "name": "ety-client",
+  "displayName": "ety Language Server",
+  "version": "0.0.1",
+  "private": true,
+  "publisher": "ety",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact"
+  ],
+  "contributes": {},
+  "scripts": {
+    "test:e2e": "node test/runTest.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/test-electron": "^2.5.2",
+    "mocha": "^11.7.1"
+  }
+}

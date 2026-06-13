@@ -1,0 +1,15 @@
+{
+  "name": "function-expression-const",
+  "description": "Comment inside the function body: inside-block check binds it to the (anonymous) function expression; the statement-level inline check must not fire. Exactly one annotation.",
+  "source": "const createUser = function(name) {\n// T: (string) => User\n    return { name };\n};\n",
+  "expected": [
+    {
+      "nodeStartOffset": 19,
+      "etyStartOffset": 36,
+      "etyEndOffset": 58,
+      "kind": "function",
+      "name": "",
+      "ety": "(string) => User"
+    }
+  ]
+}

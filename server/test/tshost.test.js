@@ -1,0 +1,231 @@
+// Milestone 3 (TS engine → Gate 3a). These tests mostly CHARACTERIZE the
+// pinned TypeScript version's behavior over hand-built virtual documents —
+// if one breaks on a TS bump, the pinned assumption changed, not our code.
+// The de-risk method fixture runs first (implementation-plan.md, M3 test #1).
+import { describe, it, expect } from 'vitest';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
+import { parse_ety } from '../src/parser.js';
+import { transformDocument } from '../src/transform.js';
+import { createTsService, tsCategoryToSeverity } from '../src/tsHost.js';
+
+const FILE = '/virtual/fixture.js';
+const ENGINE_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../fixtures/engine');
+
+function serviceFor(virtualSource, file = FILE) {
+    const virtualDocs = new Map([[file, virtualSource]]);
+    const versions = new Map([[file, 1]]);
+    return { service: createTsService({ virtualDocs, versions }), virtualDocs, versions };
+}
+
+// Hand-built EXACTLY as transformDocument emits it for the spec's Box class —
+// hand-built so a failure here indicts TypeScript's method support alone,
+// not the transformer (whose output shape Gate 2 already pins).
+const methodVirtualDoc = body => [
+    '/** @template T */',
+    'class Box {',
+    '// T: {T}',
+    '/** @type {T} */',
+    '    value; // T: T',
+    '/** @type {(item: T) => T} */',
+    '    set(item) {',
+    '// T: (item: T) => T',
+    `        ${body}`,
+    '    }',
+    '}',
+    '',
+].join('\n');
+
+describe('THE method fixture (de-risk item #1): injected @type on class methods', () => {
+    it('a correct method body yields zero diagnostics (@template T resolves in method position)', () => {
+        const { service } = serviceFor(methodVirtualDoc('this.value = item; return item;'));
+        expect(service.getSemanticDiagnostics(FILE)).toEqual([]);
+    });
+
+    it('RESOLVED GREEN (TS 6.0.3): @type on a class method applies — deliberate error in the body is caught', () => {
+        // Gate 3a decision, recorded in writing: TypeScript honors an injected
+        // /** @type {(item: T) => T} */ above a class method, so NO
+        // @param/@returns contingency branch is needed. If TS ignored @type
+        // on methods, `return 42` from an untyped JS method would be legal
+        // and this list would be empty.
+        const source = methodVirtualDoc('return 42;');
+        const { service } = serviceFor(source);
+        const diags = service.getSemanticDiagnostics(FILE);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].code).toBe(2322); // Type 'number' is not assignable to type 'T'.
+        // TS anchors a return-type mismatch on the `return` keyword itself
+        // (not the returned expression) — and inside the body, not the JSDoc.
+        expect(source.slice(diags[0].start, diags[0].start + diags[0].length)).toBe('return');
+    });
+});
+
+describe('default lib loads through the host', () => {
+    it('lib types resolve (getScriptSnapshot must fall back to disk for non-virtual files)', () => {
+        // The language service reads EVERY program file — lib.es2022.d.ts
+        // included — via getScriptSnapshot, never via the host's readFile
+        // (that one only serves module resolution). A host that answers
+        // undefined for non-virtual files silently drops the standard lib and
+        // Array/Number members stop existing.
+        const { service } = serviceFor('const n = [1, 2].length;\nn.toFixed(2);\n');
+        expect(service.getSemanticDiagnostics(FILE)).toEqual([]);
+    });
+});
+
+describe('function declaration fixture: @type with type params applies positionally', () => {
+    const FUNC_CLEAN = [
+        '/** @type {<T>(items: T[], fallback: T) => T} */',
+        'function first(items, fallback) {',
+        '    return items.length ? items[0] : fallback;',
+        '}',
+        'const n = first([1, 2], 3);',
+        'n.toFixed(2);',
+        '',
+    ].join('\n');
+
+    it('correct generic call-site yields zero diagnostics', () => {
+        const { service } = serviceFor(FUNC_CLEAN);
+        expect(service.getSemanticDiagnostics(FILE)).toEqual([]);
+    });
+
+    it('type params bind to declared params POSITIONALLY: misuse at the call-site is caught', () => {
+        const source = FUNC_CLEAN.replace('first([1, 2], 3)', "first([1, 2], 'x')");
+        const { service } = serviceFor(source);
+        const diags = service.getSemanticDiagnostics(FILE);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].code).toBe(2345); // Argument of type 'string' is not assignable…
+        // T was inferred as number from the FIRST argument, proving the
+        // signature's params mapped onto (items, fallback) in order.
+        expect(source.slice(diags[0].start, diags[0].start + diags[0].length)).toBe("'x'");
+    });
+});
+
+describe('version trap: getScriptVersion is the ONLY cache invalidation', () => {
+    const BAD  = '/** @type {number} */\nlet x = "oops";\n';
+    const GOOD = '/** @type {number} */\nlet x = 1;\n';
+
+    it('mutating the virtual doc without bumping the version returns STALE diagnostics', () => {
+        // This documents the trap (implementation-plan.md M3 test #3): the
+        // assertion is that the stale result IS returned, so anyone wiring
+        // processDocument without the version bump breaks this test's twin
+        // below, and anyone "fixing" TS's caching breaks this one.
+        const { service, virtualDocs } = serviceFor(BAD);
+        expect(service.getSemanticDiagnostics(FILE)).toHaveLength(1);
+        virtualDocs.set(FILE, GOOD);
+        expect(service.getSemanticDiagnostics(FILE)).toHaveLength(1); // stale!
+    });
+
+    it('bumping the version invalidates the cache and returns fresh diagnostics', () => {
+        const { service, virtualDocs, versions } = serviceFor(BAD);
+        expect(service.getSemanticDiagnostics(FILE)).toHaveLength(1);
+        virtualDocs.set(FILE, GOOD);
+        versions.set(FILE, 2);
+        expect(service.getSemanticDiagnostics(FILE)).toEqual([]);
+    });
+});
+
+describe('syntactic + semantic merge', () => {
+    const SYNTAX_ERROR = 'let x = ;\n';
+
+    it('a syntax error surfaces via getSyntacticDiagnostics', () => {
+        const { service } = serviceFor(SYNTAX_ERROR);
+        const diags = service.getSyntacticDiagnostics(FILE);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].code).toBe(1109); // Expression expected.
+    });
+
+    it('getSemanticDiagnostics alone silently drops the parse error (why pushDiagnostics merges both)', () => {
+        const { service } = serviceFor(SYNTAX_ERROR);
+        expect(service.getSemanticDiagnostics(FILE)).toEqual([]);
+    });
+});
+
+describe('severity mapping', () => {
+    it('maps each TS DiagnosticCategory to the corresponding LSP severity', () => {
+        // DiagnosticSeverity: Error=1, Warning=2, Information=3, Hint=4
+        expect(tsCategoryToSeverity(ts.DiagnosticCategory.Error)).toBe(1);
+        expect(tsCategoryToSeverity(ts.DiagnosticCategory.Warning)).toBe(2);
+        expect(tsCategoryToSeverity(ts.DiagnosticCategory.Message)).toBe(3);
+        expect(tsCategoryToSeverity(ts.DiagnosticCategory.Suggestion)).toBe(4);
+        expect(tsCategoryToSeverity(undefined)).toBe(1); // unknown → Error
+    });
+
+    it('a REAL suggestion-category diagnostic from TS maps to Hint', () => {
+        // require() in an ESM-target project draws TS 80001 ("File is a
+        // CommonJS module…"), the only readily available Suggestion-category
+        // diagnostic — used here so the mapping is exercised against a
+        // genuine TS-produced category, not a hand-rolled enum value.
+        const { service } = serviceFor('const fs = require("fs");\nfs.readFileSync("x");\n');
+        const suggestions = service.getSuggestionDiagnostics(FILE);
+        expect(suggestions.length).toBeGreaterThan(0);
+        expect(suggestions[0].code).toBe(80001);
+        expect(suggestions[0].category).toBe(ts.DiagnosticCategory.Suggestion);
+        expect(tsCategoryToSeverity(suggestions[0].category)).toBe(4); // Hint
+    });
+});
+
+describe('cross-file types (disk-backed fixtures, REAL parse → transform pipeline)', () => {
+    const MAIN  = join(ENGINE_DIR, 'main.js');
+    const TYPES = join(ENGINE_DIR, 'types.js');
+    const virt = p => {
+        const source = readFileSync(p, 'utf8');
+        return transformDocument(source, parse_ety(source)).virtualSource;
+    };
+    const allDiags = (service, file) => [
+        ...service.getSyntacticDiagnostics(file),
+        ...service.getSemanticDiagnostics(file),
+    ];
+
+    it('both docs open: // T: import between them resolves, generic Box{number} type-checks clean', () => {
+        const virtualDocs = new Map([[MAIN, virt(MAIN)], [TYPES, virt(TYPES)]]);
+        const versions = new Map([[MAIN, 1], [TYPES, 1]]);
+        const service = createTsService({ virtualDocs, versions });
+        expect(allDiags(service, MAIN)).toEqual([]);
+        expect(allDiags(service, TYPES)).toEqual([]);
+    });
+
+    it('V1 LIMITATION: importing doc alone — closed types.js is served raw from disk, its generics vanish', () => {
+        // With types.js not in virtualDocs, getScriptSnapshot falls back to
+        // the raw disk bytes: an untransformed `class Box` with no @template,
+        // so Box<number> draws TS2315. The error lands on the INJECTED JSDoc
+        // line (Milestone 4 remaps such diagnostics onto the // T: comment).
+        const mainVirtual = virt(MAIN);
+        const virtualDocs = new Map([[MAIN, mainVirtual]]);
+        const versions = new Map([[MAIN, 1]]);
+        const service = createTsService({ virtualDocs, versions });
+        const diags = allDiags(service, MAIN);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].code).toBe(2315); // Type 'Box' is not generic.
+        expect(mainVirtual.slice(diags[0].start, diags[0].start + diags[0].length)).toBe('Box<number>');
+    });
+});
+
+describe('workspaceRoot: getCurrentDirectory must follow the workspace, not the server process cwd', () => {
+    // In the editor, process.cwd() is wherever the extension host spawned the
+    // server — not the user's project root. TS walks UP from
+    // getCurrentDirectory to find node_modules/@types, so global type
+    // packages only resolve if the host reports the workspace root.
+    it('a global @types package in the workspace resolves with workspaceRoot, draws TS2304 without it', () => {
+        const root = mkdtempSync(join(tmpdir(), 'ety-ws-'));
+        try {
+            mkdirSync(join(root, 'node_modules/@types/ety-globals'), { recursive: true });
+            writeFileSync(
+                join(root, 'node_modules/@types/ety-globals/index.d.ts'),
+                'declare const ETY_TEST_GLOBAL: number;\n',
+            );
+            const src = 'ETY_TEST_GLOBAL.toFixed(2);\n';
+            const mk = workspaceRoot => createTsService({
+                virtualDocs: new Map([[FILE, src]]),
+                versions: new Map([[FILE, 1]]),
+                workspaceRoot,
+            });
+            expect(mk(root).getSemanticDiagnostics(FILE)).toEqual([]);
+            // Default (process.cwd() = the server dir, no such package):
+            expect(mk(undefined).getSemanticDiagnostics(FILE).map(d => d.code)).toContain(2304);
+        } finally {
+            rmSync(root, { recursive: true, force: true });
+        }
+    });
+});

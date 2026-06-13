@@ -1,0 +1,15 @@
+{
+  "name": "arrow-block",
+  "description": "Block-bodied arrow: inside-block annotation binds to the ArrowFunctionExpression (anonymous, name empty).",
+  "source": "const clamp = (x) => {\n// T: (number) => number\n    return Math.min(1, Math.max(0, x));\n};\n",
+  "expected": [
+    {
+      "nodeStartOffset": 14,
+      "etyStartOffset": 23,
+      "etyEndOffset": 47,
+      "kind": "function",
+      "name": "",
+      "ety": "(number) => number"
+    }
+  ]
+}
