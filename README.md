@@ -4,7 +4,9 @@
 
 ```javascript
 let count = 0;               // T: number
+let current = null;          // T: User | null
 const cache = new Map();     // T: Map{string, User}
+const double = x => x * 2;   // T: (number) => number
 
 function createUser(name, role) {
 // T: (name: string, role?: Role) => User
@@ -57,6 +59,55 @@ Imports get their own form, hoisted to the top of the virtual document:
 ```javascript
 // T: import { User, Role } from './types'
 ```
+
+### Every form
+
+A single module exercising each supported annotation:
+
+```javascript
+// ── Imports — hoisted to the top of the virtual document ──
+// T: import { User, Role } from './types'
+
+// ── Variables & properties — Rule 1, trailing on the same line ──
+let count = 0;                       // T: number
+let current = null;                  // T: User | null  (union)
+const cache = new Map();             // T: Map{string, User}
+const ids = new Set();               // T: Set{string}
+const pending = fetchUser();         // T: Promise{User}
+let entries = [];                    // T: [string, number][]  (array of tuples)
+const config = {};                   // T: { host: string, port: number }  (object type, verbatim)
+const nested = new Map();            // T: Map{string, {id: string}}  (nested object inside a generic)
+
+// ── Functions — Rule 2, first line inside the body ──
+function createUser(name, role) {
+// T: (name: string, role?: Role) => User
+    return { id: crypto.randomUUID(), name, role: role ?? 'user' };
+}
+
+// Concise arrows have no block body, so they take a trailing annotation
+// on the whole statement (Rule 1):
+const double = x => x * 2;           // T: (number) => number
+
+// Function expressions assigned to a variable use the inside-block form:
+const greet = function (user) {
+// T: (user: User) => string
+    return `hi ${user.name}`;
+};
+
+// ── Classes & generics — Rule 2 for the class and each method ──
+class Box {
+// T: {T}
+    value;                           // T: T
+    map(fn) {
+        // T: {U}((T) => U) => Box{U}
+        return new Box(fn(this.value));
+    }
+}
+
+const boxed = new Box(42);           // T: Box{number}
+```
+
+Each becomes a JSDoc line in the virtual document — `// T: number` → `/** @type {number} */`, the class `// T: {T}` → `/** @template T */`, and a function signature is given synthetic parameter names where you omit them (`(number) => number` → `(p0: number) => number`). You never see any of that; it lives only in the document handed to TypeScript.
 
 ## Project layout
 
